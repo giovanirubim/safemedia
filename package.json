@@ -19,5 +19,9 @@
 	"homepage": "https://github.com/giovanirubim/safemedia#readme",
 	"devDependencies": {
 		"electron": "^8.2.5"
+	},
+	"dependencies": {
+		"jQuery": "^1.7.4",
+		"sharp": "^0.25.2"
 	}
 }
