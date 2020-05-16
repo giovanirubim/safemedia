@@ -1,8 +1,94 @@
 body {
 	margin: 0px;
 	background-color: #ccc;
-	font-family: monospace;
+	font-family: arial;
+	font-size: 0px;
+	--file-item-width: 150px;
+	--file-item-inner-margin: 3px;
+	--file-item-height: 38px;
+	--file-item-img-size: calc(var(--file-item-height) - var(--file-item-inner-margin)*2);
+	--top-bar-height: 32px;
+	--top-bar-inner-margin: 3px;
+	--top-bar-inner-height: calc(var(--top-bar-height) - var(--top-bar-inner-margin)*2);
+	--path-padding-left: 6px;
 }
 .file-item {
 	cursor: default;
+	display: inline-block;
+	width: var(--file-item-width);
+	height: var(--file-item-height);
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: -1px 1px 3px #aaa;
+	margin-top: 5px;
+	margin-left: 5px;
+}
+.file-item .thumb-container {
+	float: left;
+	width: var(--file-item-height);
+	height: var(--file-item-height);
+}
+.file-item .file-info {
+	float: right;
+	width: calc(var(--file-item-width) - var(--file-item-height) - var(--file-item-inner-margin)*2);
+	height: var(--file-item-height);
+	margin-right: var(--file-item-inner-margin);
+	margin-left: var(--file-item-inner-margin);
+}
+.file-item .file-info .info-line {
+	white-space: nowrap; 
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-top: var(--file-item-inner-margin);
+}
+.file-item .thumb-container img {
+	margin-top: var(--file-item-inner-margin);
+	margin-left: var(--file-item-inner-margin);
+	width: var(--file-item-img-size);
+}
+.file-info .text {
+	font-size: 12px;
+}
+#files_container {
+	position: absolute;
+	top: var(--top-bar-height);
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+#top_bar {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	height: var(--top-bar-height);
+	background-color: #aaa;
+}
+#top_bar .buttons {
+	float: left;
+}
+#top_bar .buttons button {
+	border: none;
+	padding: 0px;
+	margin-top: var(--top-bar-inner-margin);
+	margin-left: var(--top-bar-inner-margin);
+	width: var(--top-bar-inner-height);
+	height: var(--top-bar-inner-height);
+}
+#top_bar .buttons button img {
+	width: 100%;
+}
+#top_bar .path-container {
+	float: left;
+}
+.path-container {
+	width: calc(100% - var(--top-bar-inner-height)*2 - var(--top-bar-inner-margin)*4);
+}
+#path {
+	border: none;
+	margin-top: var(--top-bar-inner-margin);
+	margin-left: var(--top-bar-inner-margin);
+	height: var(--top-bar-inner-height);
+	padding: 0px 0px 0px var(--path-padding-left);
+	width: calc(100% - var(--path-padding-left));
 }

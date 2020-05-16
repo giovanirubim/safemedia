@@ -34,14 +34,14 @@ const updateContext = () => {
 
 const createMainWindow = () => {
 	let win = new BrowserWindow({
-		width: 800,
-		height: 600,
+		width: 1024,
+		height: 800,
 		webPreferences: { nodeIntegration: true },
 		icon: './icon.png'
 	});
 	win.removeMenu();
 	win.loadFile('./web/index.html');
-	win.webContents.openDevTools();
+	// win.webContents.openDevTools();
 };
 
 ipcMain.on('ctx-req', e => {
@@ -64,9 +64,16 @@ ipcMain.on('up', (e, file) => {
 	let { pwd } = context;
 	if (!pwd.includes('/')) return;
 	history.push(pwd);
-	console.log(pwd);
 	context.pwd = pwd.replace(/\/[^\/]+\/$/, '/');
-	console.log(context.pwd);
+	updateContext();
+	e.reply('ctx-update', context);
+});
+ipcMain.on('set-ctx', (e, path) => {
+	path = path.replace(/\\/g, '/').replace(/\/$/, '') + '/';
+	if (!fs.existsSync(path)) return;
+	if (!fs.lstatSync(path).isDirectory()) return;
+	history.push(context.pwd);
+	context.pwd = path;
 	updateContext();
 	e.reply('ctx-update', context);
 });
