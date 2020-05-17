@@ -6,6 +6,7 @@ const $tag = (str) => $(document.createElement(str));
 
 let fileMap = {};
 let lastId = 0;
+let context = null;
 
 let srcRoot;
 let theme = 'white';
@@ -24,26 +25,37 @@ const dumpSize = (size) => {
 	return Math.round(size/1024*100)/100 + ' TB';
 };
 const getImgSrc = (name) => imgMap[name].replace(/%theme%/g, theme);
+const getExt = (path) => path.substr(path.lastIndexOf('.')+1).toLowerCase();
 const fileToDOM = (file) => {
 
 	const id = 'file_' + (++lastId);
 	fileMap[id] = { ...file };
 
 	const dom = $tag('div').html(`
-		<div class="thumb-container">
-			<img src="${ getImgSrc(file.isDir? 'folder': 'file') }">
-		</div>
+		<div class="thumb-container"></div>
 		<div class="file-info">
 			<div class="info-line file-name text"></div>
 		</div>
 	`);
-	dom.attr({ id, title: file.name });
+	if (getExt(file.name) === 'png') {
+		const img = $tag('img');
+		const filepath = context.pwd + file.name;
+		img.attr({
+			src: `http://127.0.0.1:9449/src?path=${encodeURIComponent(filepath)}`
+		});
+		dom.find('.thumb-container').append(img);
+	} else {
+		dom.find('.thumb-container').html(`
+			<img src="${ getImgSrc(file.isDir? 'folder': 'file') }">
+		`);
+	}
+	dom.attr({ id, title: file.name, tabindex: '0' });
 	dom.addClass('file-item');
 	if (file.isDir) {
 		dom.addClass('directory');
 	} else {
 		dom.find('.file-info').append(`<div class="info-line file-size">
-			<span class="text">${dumpSize(file.size)}</span>
+			<span class="text file-size">${dumpSize(file.size)}</span>
 		</div>`);
 	}
 	dom.find('.file-name').append($str(file.name));
@@ -53,6 +65,7 @@ const fileToDOM = (file) => {
 
 let files_container;
 const updateCtx = (ctx) => {
+	context = ctx;
 	$('#path').val(ctx.pwd);
 	files_container.html('');
 	lastId = 0;
@@ -78,6 +91,7 @@ const bindKeys = () => {
 };
 
 $(document).ready(() => {
+	let index = ipcRenderer.sendSync('add-key', 'abC123');
 	files_container = $('#files_container');
 	ipcRenderer.on('ctx-update', (e, ctx) => updateCtx(ctx));
 	ipcRenderer.send('ctx-req');

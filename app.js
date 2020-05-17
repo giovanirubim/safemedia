@@ -1,11 +1,56 @@
+const http = require('http');
+const parseUrl = require('url').parse;
 const fs = require('fs');
-
+const getMime = require('mime-types').lookup;
+const Cipher = require('./lib/cipher.js');
 const {
 	app,
 	BrowserWindow,
 	ipcMain,
 	nativeImage
 } = require('electron');
+
+const ciphers = [];
+const httpServer = http.createServer(async(req, res) => {
+	const { pathname: path, query } = parseUrl(req.url, true);
+	if (path !== '/src') {
+		res.writeHead(404);
+		res.end();
+		return;
+	}
+	const { path: filepath } = query;
+	if (!fs.existsSync(filepath)) {
+		res.writeHead(404);
+		res.end();
+		return;
+	}
+	let cipher = null;
+	for (let i=0; i<ciphers.length; ++i) {
+		cipher = ciphers[i];
+		if (await cipher.check(filepath)) break;
+		cipher = null;
+	}
+	if (cipher) {
+		const stream = await cipher.read(filepath, (chunk) => res.write(chunk));
+		res.writeHead(200, {
+			'Content-Type': getMime(filepath),
+			'Content-Length': stream.size,
+			'Access-Control-Allow-Origin': '*'
+		});
+		stream.ready().then(() => res.end());
+		return;
+	}
+	const { size } = fs.lstatSync(filepath);
+	const stream = fs.createReadStream(filepath);
+	res.writeHead(200, {
+		'Content-Type': getMime(filepath),
+		'Content-Length': size,
+		'Access-Control-Allow-Origin': '*'
+	});
+	stream.on('data', (chunk) => res.write(chunk));
+	stream.on('end', () => res.end());
+});
+httpServer.listen(9449);
 
 const history = [];
 const context = {
@@ -41,7 +86,7 @@ const createMainWindow = () => {
 	});
 	win.removeMenu();
 	win.loadFile('./web/index.html');
-	// win.webContents.openDevTools();
+	win.webContents.openDevTools();
 };
 
 ipcMain.on('ctx-req', e => {
@@ -76,6 +121,10 @@ ipcMain.on('set-ctx', (e, path) => {
 	context.pwd = path;
 	updateContext();
 	e.reply('ctx-update', context);
+});
+ipcMain.on('add-key', (e, password) => {
+	e.returnValue = ciphers.length;
+	ciphers.push(Cipher(password));
 });
 
 app.whenReady().then(createMainWindow);
